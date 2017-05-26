@@ -11,6 +11,7 @@ class CreateArticles extends AbstractMigration
      * @return void
      */
     public function change()
+
     {
         $table = $this->table('articles');
         $table->addColumn('title', 'string', [
@@ -41,5 +42,8 @@ class CreateArticles extends AbstractMigration
             'null' => false,
         ]);
         $table->create();
+
+        $table->addForeignKey()
     }
+
 }

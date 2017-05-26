@@ -23,12 +23,9 @@ class ArticlesController extends AppController
 
     public function isAuthorized($user)
     {
-        // All registered users can add articles
-        if ($this->request->getParam('action') === 'add') {
-            return true;
-        }
 
-        if ($this->request->getParam('action') === 'index') {
+        $allowArray = ['index', 'view', 'add'];
+        if (in_array($this->request->getParam('action'), $allowArray)) {
             return true;
         }
 
@@ -50,8 +47,16 @@ class ArticlesController extends AppController
      */
     public function index()
     {
-        $articles = $this->paginate($this->Articles);
+        $user = $this->Auth->user('role');
+        if ($user === 'admin'){
+            $articles = $this->paginate($this->Articles);
+        }
 
+        else {
+            $articlesArr = $this->Articles->find()->where(['user_id' => $this->Auth->user('id')]);
+            $articles = $this->paginate($articlesArr);
+
+        }
         $this->set(compact('articles'));
         $this->set('_serialize', ['articles']);
     }
@@ -82,6 +87,7 @@ class ArticlesController extends AppController
     {
 
         $article = $this->Articles->newEntity();
+        $categories = $this->Articles->Categories->find('treeList');
         if ($this->request->is('post')) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
             $article->user_id = $this->Auth->user('id');
@@ -94,10 +100,8 @@ class ArticlesController extends AppController
             }
             $this->Flash->error(__('The article could not be saved. Please, try again.'));
         }
-        $this->set(compact('article'));
+        $this->set(compact('article', 'categories'));
         $this->set('_serialize', ['article']);
-        $categories = $this->Articles->Categories->find('treeList');
-        $this->set(compact('categories'));
     }
 
     /**
